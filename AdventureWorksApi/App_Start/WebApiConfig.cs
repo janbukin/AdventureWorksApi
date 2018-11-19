@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http;
+﻿using System.Web.Http;
+using Serilog;
 
 namespace AdventureWorksApi
 {
@@ -19,6 +17,11 @@ namespace AdventureWorksApi
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+
+            //Log.Logger = new LoggerConfiguration()
+            //    .MinimumLevel.Debug()
+            //    .WriteTo.File("log.txt")
+            //    .CreateLogger();
         }
     }
 }

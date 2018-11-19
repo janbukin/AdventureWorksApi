@@ -4,19 +4,32 @@ using System.Linq;
 using System.Net;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Serilog;
 
 namespace AdventureWorksApi.Controllers
 {
     public class ProductsController : ApiController
     {
-        private AdventureWorksContext db = new AdventureWorksContext()
+        private AdventureWorksContext db;
+
+        public ProductsController()
         {
-            Configuration = { ProxyCreationEnabled = false }
-        };
+            db = new AdventureWorksContext()
+            {
+                Configuration = { ProxyCreationEnabled = false }
+            };
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File("log.txt")
+                .CreateLogger();
+        }
 
         // GET: api/Products
         public IHttpActionResult GetProducts()
         {
+            Log.Information("Getting all the products...");
+
             var products = db.Products.ToList();
 
             return Ok(products);
@@ -26,7 +39,10 @@ namespace AdventureWorksApi.Controllers
         [ResponseType(typeof(Product))]
         public IHttpActionResult GetProduct(int id)
         {
+            Log.Information("Getting product by id={ID}", id);
+
             Product product = db.Products.Find(id);
+
             if (product == null)
             {
                 return NotFound();
@@ -39,6 +55,8 @@ namespace AdventureWorksApi.Controllers
         [ResponseType(typeof(void))]
         public IHttpActionResult PutProduct(int id, Product product)
         {
+            Log.Information("Updating product by id={ID}", id);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -59,10 +77,12 @@ namespace AdventureWorksApi.Controllers
             {
                 if (!ProductExists(id))
                 {
+                    Log.Error("Updating failed: product with id={Id} doesn't exist", id);
                     return NotFound();
                 }
                 else
                 {
+                    Log.Information("Updating failed for product by id={ID}", id);
                     throw;
                 }
             }
@@ -74,6 +94,8 @@ namespace AdventureWorksApi.Controllers
         [ResponseType(typeof(Product))]
         public IHttpActionResult PostProduct(Product product)
         {
+            Log.Information("Posting product with name={Name}", product.Name);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -89,9 +111,13 @@ namespace AdventureWorksApi.Controllers
         [ResponseType(typeof(Product))]
         public IHttpActionResult DeleteProduct(int id)
         {
+            Log.Information("Deleting product by id={ID}", id);
+
             Product product = db.Products.Find(id);
+
             if (product == null)
             {
+                Log.Error("Updating failed: product with id={Id} doesn't exist", id);
                 return NotFound();
             }
 
